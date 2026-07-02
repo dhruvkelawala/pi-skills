@@ -18,7 +18,7 @@ Examples:
 /implement execute anthropic/claude-sonnet-4 on max thinking #123
 ```
 
-Parse the first token after `execute` containing `/` as the executor model spec. Parse `on <thinking> thinking` as the requested thinking/effort level and remove those words from the work item args. Treat remaining args as the issue, ticket, plan, or context pointer. If the host cannot honor the requested model or thinking level, stop and ask; do not silently switch executors.
+Parse the first token after `execute` containing `/` as the executor model spec. Parse `on <thinking> thinking` as the requested thinking/effort level and remove those words from the work item args. If no thinking level is supplied, default the executor to `high` thinking. Treat remaining args as the issue, ticket, plan, or context pointer. If the host cannot honor the requested model or thinking level, stop and ask; do not silently switch executors.
 
 ## Preconditions
 
@@ -29,7 +29,7 @@ Parse the first token after `execute` containing `/` as the executor model spec.
 
 ## Dispatch
 
-Spawn one executor subagent in an isolated worktree. Pass the requested `modelProvider/model` and thinking level to the host subagent facility when supported.
+Spawn one executor subagent in an isolated worktree. Pass the requested `modelProvider/model` and requested or default `high` thinking level to the host subagent facility when supported.
 
 Inline all needed context in the prompt:
 
