@@ -1,13 +1,13 @@
 ---
 name: implement
-description: Implement a single GitHub issue, Linear ticket, or current plan as a small, reviewable vertical slice. Use when the user invokes /implement, /implement plan, asks to implement an issue/ticket, or passes a PRD plus one agent-ready issue from /to-issues or /triage.
+description: Implement a single GitHub issue, Linear ticket, or current plan as a small, reviewable vertical slice. Use when the user invokes /implement, /implement plan, /implement execute, asks to implement an issue/ticket, or passes a PRD plus one agent-ready issue from /to-issues or /triage.
 ---
 
 # Implement
 
 Implement one agent-ready work item or current conversation plan in small, reviewable chunks.
 
-This is the build step in the `/ask-matt` idea-to-ship flow. It usually receives a single issue from `/to-issues`, a `ready-for-agent` issue from `/triage`, a Linear ticket, `/implement plan`, or a PRD/handoff plus exactly one issue to implement.
+This is the build step in the `/ask-matt` idea-to-ship flow. It usually receives a single issue from `/to-issues`, a `ready-for-agent` issue from `/triage`, a Linear ticket, `/implement plan`, `/implement execute`, or a PRD/handoff plus exactly one issue to implement.
 
 ## Contract
 
@@ -21,6 +21,7 @@ This is the build step in the `/ask-matt` idea-to-ship flow. It usually receives
 - Implement as vertical slices: each chunk should move real behavior end-to-end, not just one horizontal layer.
 - Verify with focused tests first, then broader checks when the blast radius justifies it.
 - Run structured autoreview at the end of each implementation round, using a different engine family from the model that wrote the code.
+- For `/implement execute`, delegate to one executor subagent and review its result; read [EXECUTE.md](EXECUTE.md).
 - If running as a Pi agent or inside the Pi harness, run `hunk skill path`, read the printed Hunk review skill, and use Hunk AI notes to walk through the changeset.
 - Do not publish, close, or relabel the issue unless the user asks, or they invoke a publish flow such as `/apr`.
 
