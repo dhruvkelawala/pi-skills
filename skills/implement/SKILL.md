@@ -17,6 +17,7 @@ This is the build step in the `/ask-matt` idea-to-ship flow. It usually receives
 - Keep changes scoped to the ticket. Preserve unrelated dirty files.
 - From `main`, `master`, or the default branch, create `{type}/{short-description}` where `{type}` is a conventional commit type such as `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`, `build`, or `ci`.
 - Commit each implementation round as its own conventional-commit commit before starting the next round.
+- If a Hunk review is open or in progress, do not stage diffs or commit until the review is closed or the user explicitly says to proceed; staging/committing removes the working-tree review diff from Hunk.
 - Never force-push ordinary changes. Force-push only after a rebase requires updating remote history, and use `--force-with-lease`, not `--force`.
 - Implement as vertical slices: each chunk should move real behavior end-to-end, not just one horizontal layer.
 - Verify with focused tests first, then broader checks when the blast radius justifies it.
@@ -55,7 +56,7 @@ Create a short checklist of reviewable chunks. Each chunk should be small enough
 3. Wire the behavior through the real integration point.
 4. Run focused verification and structured autoreview.
 5. Fix accepted findings, then rerun focused verification and review.
-6. Commit the round with a conventional-commit subject.
+6. Commit the round with a conventional-commit subject unless a Hunk review is active.
 7. Repeat for the next acceptance criterion.
 
 Do not over-plan. Once the chunks are clear, start implementing.
