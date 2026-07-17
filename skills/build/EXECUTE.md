@@ -1,29 +1,29 @@
-# Implement Execute
+# Build Execute
 
-`/implement execute` delegates implementation to one executor subagent. The main agent resolves the work item, dispatches the executor, then reviews the result; it does not edit code itself in execute mode.
+`/build execute` delegates implementation to one executor subagent. The main agent resolves the work item, dispatches the executor, then reviews the result; it does not edit code itself in execute mode.
 
 ## Invocation
 
 Syntax:
 
 ```text
-/implement execute [modelProvider/model] [on <thinking> thinking] [work item args]
+/build execute [modelProvider/model] [on <thinking> thinking] [work item args]
 ```
 
 Examples:
 
 ```text
-/implement execute
-/implement execute openai-codex/gpt-5.5 on xhigh thinking
-/implement execute anthropic/claude-sonnet-4 on max thinking #123
+/build execute
+/build execute openai-codex/gpt-5.5 on xhigh thinking
+/build execute anthropic/claude-sonnet-4 on max thinking #123
 ```
 
 Parse the first token after `execute` containing `/` as the executor model spec. Parse `on <thinking> thinking` as the requested thinking/effort level and remove those words from the work item args. If no thinking level is supplied, default the executor to `high` thinking. Treat remaining args as the issue, ticket, plan, or context pointer. If the host cannot honor the requested model or thinking level, stop and ask; do not silently switch executors.
 
 ## Preconditions
 
-- The host must support subagents in isolated git worktrees. If not, say so and ask whether to run normal `/implement` instead.
-- Resolve the work item using normal `/implement` rules before dispatch: issue, ticket, `/implement plan`, PRD/handoff, or current conversation plan.
+- The host must support subagents in isolated git worktrees. If not, say so and ask whether to run normal `/build` instead.
+- Resolve the work item using normal `/build` rules before dispatch: issue, ticket, `/build plan`, PRD/handoff, or current conversation plan.
 - Confirm the work is narrow enough for one reviewable PR and that unrelated dirty files are protected.
 - Capture repo state: current branch, default branch, remote, dirty files, and intended `{type}/{short-description}` branch.
 
