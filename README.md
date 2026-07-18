@@ -17,7 +17,7 @@ Add to your Pi `settings.json`:
 ```json
 {
   "packages": [
-    "git:github.com/dhruvkelawala/pi-skills"
+    "git:github.com/dhruvkelawala/skills"
   ]
 }
 ```
@@ -27,7 +27,7 @@ Or install a single skill:
 ```json
 {
   "skills": [
-    "git:github.com/dhruvkelawala/pi-skills/skills/use-clawpatch"
+    "git:github.com/dhruvkelawala/skills/skills/use-clawpatch"
   ]
 }
 ```
