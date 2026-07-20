@@ -6,6 +6,7 @@
 |-------|-------------|
 | [apr](skills/apr/SKILL.md) | Run autoreview, commit, push, and open or update a ready-for-review PR. |
 | [build](skills/build/SKILL.md) | Build or delegate a single GitHub issue, Linear ticket, or current plan as a small, reviewable vertical slice. |
+| [bro](skills/bro/SKILL.md) | Restate the last message in plain human language, with no jargon. |
 | [code-walkthrough](skills/code-walkthrough/SKILL.md) | Guided codebase review for engineers inheriting or auditing agent-written or unfamiliar codebases. |
 | [explain-diff](skills/explain-diff/SKILL.md) | Explain a diff, staged changes, a branch, or a PR in plain language with a concrete end-to-end trace. |
 | [herdr-hunk-walkthrough](skills/herdr-hunk-walkthrough/SKILL.md) | Open a full PR diff in a Herdr Hunk split or tab with a numbered code walkthrough. |
