@@ -14,7 +14,7 @@ Run a complete closeout flow: structured autoreview first, then intentional comm
   - If the user invokes `/apr codex`, run autoreview with Codex instead.
   - If the user invokes `/apr claude`, run autoreview with Claude explicitly.
   - If the user invokes `/apr --skip-review` or `/apr skip-review`, skip autoreview entirely.
-  - When the selected engine is Claude, pass `--model claude-opus-4-8`.
+  - When the selected engine is Claude, pass `--model claude-opus-5`.
   - Pass the selected engine on every autoreview command.
   - Open a ready-for-review PR, never a draft PR.
   - If a PR already exists for the current branch, update that PR flow by pushing the reviewed changes if they are not already pushed; do not create a duplicate PR.
@@ -51,7 +51,7 @@ Run a complete closeout flow: structured autoreview first, then intentional comm
      - `/apr --skip-review` means skip autoreview.
      - `/apr skip-review` also means skip autoreview.
    - If the user passes any other engine or option, stop and ask whether they meant `claude`, `codex`, or `--skip-review`.
-   - If the selected engine is `claude`, set `model_args="--model claude-opus-4-8"`.
+   - If the selected engine is `claude`, set `model_args="--model claude-opus-5"`.
    - If the selected engine is `codex`, leave `model_args` empty unless the user explicitly requested a model.
    - Run relevant formatters/tests first when they are obvious from the repo.
    - If review is skipped, do not run the autoreview helper; continue to staging and commit after tests/proof.
