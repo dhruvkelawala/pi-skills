@@ -16,6 +16,7 @@ Run a complete closeout flow: structured autoreview first, then intentional comm
   - If the user invokes `/apr --skip-review` or `/apr skip-review`, skip autoreview entirely.
   - When the selected engine is Claude, pass `--model claude-opus-5`.
   - Pass the selected engine on every autoreview command.
+  - Use `gh stack` for stacked branches and whenever stack creation, update, push, sync, or submit is necessary.
   - Open a ready-for-review PR, never a draft PR.
   - If a PR already exists for the current branch, update that PR flow by pushing the reviewed changes if they are not already pushed; do not create a duplicate PR.
   - Do not prefix the PR title with `[codex]`.
@@ -76,14 +77,23 @@ Run a complete closeout flow: structured autoreview first, then intentional comm
    - Use a conventional commit subject for the commit, matching the PR title unless there is a good reason to differ.
    - Prefer one of `fix:`, `feat:`, `refactor:`, `test:`, `docs:`, `chore:`, `perf:`, `build:`, or `ci:`.
 
-6. Push the branch.
+6. Push the branch or stack.
    - Before creating a PR, check whether one already exists for the current branch:
 
 ```bash
 gh pr view --json url,state,baseRefName,headRefName,title
 ```
 
-   - If a PR already exists, push the reviewed commit(s) if they are not already on the remote, then skip PR creation.
+   - If the current branch is part of a stack, push or submit with `gh stack`:
+
+```bash
+gh stack view
+gh stack push
+```
+
+   - If a stack must be created or updated, use `gh stack init`, `gh stack add <branch>`, `gh stack sync`, or `gh stack submit --open` as needed.
+   - If a PR already exists, push the reviewed commit(s) if they are not already on the remote, then skip duplicate PR creation.
+   - If the branch is not stacked and `gh stack` is not needed, push normally:
 
 ```bash
 git push -u origin "$(git branch --show-current)"
@@ -91,6 +101,7 @@ git push -u origin "$(git branch --show-current)"
 
 7. Open the PR ready for review.
    - Skip this step when `gh pr view` found an existing PR for the current branch.
+   - If the current branch is stacked, use `gh stack submit --open` to create or update the ready-for-review PR stack.
    - Prefer the GitHub app from the GitHub plugin when available.
    - Derive repository, head branch, and base branch from `gh repo view`, `git branch --show-current`, and the user request or remote default branch.
    - Set the PR title to the conventional commit subject exactly, with no `[codex]` prefix.
