@@ -1,35 +1,36 @@
 ---
-name: implement
-description: Implement a single GitHub issue, Linear ticket, or current plan as a small, reviewable vertical slice. Use when the user invokes /implement, /implement plan, /implement execute, asks to implement an issue/ticket, or passes a PRD plus one agent-ready issue from /to-issues or /triage.
+name: build
+description: Build or implement a single GitHub issue, Linear ticket, or current plan as a small, reviewable vertical slice. Use when the user invokes /build, /build plan, /build execute, asks to implement an issue/ticket, or passes a PRD plus one agent-ready issue from /to-issues or /triage.
 ---
 
-# Implement
+# Build
 
-Implement one agent-ready work item or current conversation plan in small, reviewable chunks.
+Build one agent-ready work item or current conversation plan in small, reviewable chunks.
 
-This is the build step in the `/ask-matt` idea-to-ship flow. It usually receives a single issue from `/to-issues`, a `ready-for-agent` issue from `/triage`, a Linear ticket, `/implement plan`, `/implement execute`, or a PRD/handoff plus exactly one issue to implement.
+This is the build step in the `/ask-matt` idea-to-ship flow. It usually receives a single issue from `/to-issues`, a `ready-for-agent` issue from `/triage`, a Linear ticket, `/build plan`, `/build execute`, or a PRD/handoff plus exactly one issue to implement.
 
 ## Contract
 
 - Work one issue, ticket, or current plan at a time.
-- Treat `/implement plan` as instructions to act on the plan just made in conversation. Otherwise treat the issue body, linked PRD, plan, and acceptance criteria as the source of truth.
+- Treat `/build plan` as instructions to act on the plan just made in conversation. Otherwise treat the issue body, linked PRD, plan, and acceptance criteria as the source of truth.
 - If the work item is too broad for one reviewable PR, stop and propose a split instead of silently doing a sprawling implementation.
 - Keep changes scoped to the ticket. Preserve unrelated dirty files.
 - From `main`, `master`, or the default branch, create `{type}/{short-description}` where `{type}` is a conventional commit type such as `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`, `build`, or `ci`.
 - Commit each implementation round as its own conventional-commit commit before starting the next round.
+- If a Hunk review is open or in progress, do not stage diffs or commit until the review is closed or the user explicitly says to proceed; staging/committing removes the working-tree review diff from Hunk.
 - Never force-push ordinary changes. Force-push only after a rebase requires updating remote history, and use `--force-with-lease`, not `--force`.
 - Implement as vertical slices: each chunk should move real behavior end-to-end, not just one horizontal layer.
 - Verify with focused tests first, then broader checks when the blast radius justifies it.
 - Run structured autoreview at the end of each implementation round, using a different engine family from the model that wrote the code.
-- For `/implement execute`, delegate to one executor subagent and review its result; read [EXECUTE.md](EXECUTE.md).
-- If running as a Pi agent or inside the Pi harness, run `hunk skill path`, read the printed Hunk review skill, and use Hunk AI notes to walk through the changeset.
+- For `/build execute`, delegate to one executor subagent and review its result; read [EXECUTE.md](EXECUTE.md).
+- For a Hunk walkthrough, first verify Herdr with `test "${HERDR_ENV:-}" = 1`; when true, use the installed `herdr-hunk-walkthrough` skill and let it own Hunk session discovery, layout, and AI notes. If the skill is unavailable, report that instead of falling back to direct Hunk checks. When not in Herdr, skip the walkthrough and report that it requires a Herdr-managed pane.
 - Do not publish, close, or relabel the issue unless the user asks, or they invoke a publish flow such as `/apr`.
 
 ## Workflow
 
 ### 1. Resolve the work item
 
-For `/implement plan`, skip issue/ticket lookup and use the current conversation plan plus any referenced PRD, ADR, handoff, or repo docs; if no plan is present, ask for it. Otherwise read the full issue or ticket: title, body, comments, labels/status, acceptance criteria, linked PRD/plan/ADR/handoff/parent issue, and blockers. For GitHub, use the GitHub app when available, otherwise `gh`; for Linear, use the Linear app when available.
+For `/build plan`, skip issue/ticket lookup and use the current conversation plan plus any referenced PRD, ADR, handoff, or repo docs; if no plan is present, ask for it. Otherwise read the full issue or ticket: title, body, comments, labels/status, acceptance criteria, linked PRD/plan/ADR/handoff/parent issue, and blockers. For GitHub, use the GitHub app when available, otherwise `gh`; for Linear, use the Linear app when available.
 
 ### 2. Establish repo state
 
@@ -55,7 +56,7 @@ Create a short checklist of reviewable chunks. Each chunk should be small enough
 3. Wire the behavior through the real integration point.
 4. Run focused verification and structured autoreview.
 5. Fix accepted findings, then rerun focused verification and review.
-6. Commit the round with a conventional-commit subject.
+6. Commit the round with a conventional-commit subject unless a Hunk review is active.
 7. Repeat for the next acceptance criterion.
 
 Do not over-plan. Once the chunks are clear, start implementing.
@@ -86,13 +87,15 @@ If the Claude engine is not installed, unavailable, or exits with an engine/tool
 
 Treat review findings as advisory: verify each accepted finding against the real code, fix accepted actionable issues, rerun focused tests, and rerun autoreview until it is clean or a remaining finding is consciously rejected.
 
+When a Hunk walkthrough is part of the round or closeout, use `herdr-hunk-walkthrough` only after confirming `HERDR_ENV=1`. Do not run `hunk skill path` or ad-hoc Hunk polling from `/build`; the walkthrough skill owns those checks. If the skill is not installed for the current agent, report that and leave Hunk untouched.
+
 ### 7. Close out
 
 End with a concise implementation report:
 
 - branch name, changed behavior, and important files touched
 - tests/checks run, plus autoreview command, engine, and result
-- Hunk AI-note walkthrough status when running in Pi
+- Herdr Hunk walkthrough status when running in Herdr
 - skipped checks, remaining risks, follow-up work, and whether the ticket appears fully satisfied
 
 If the user wants review and publish, hand off naturally to `/apr`.
