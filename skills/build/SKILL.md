@@ -23,7 +23,7 @@ This is the build step in the `/ask-matt` idea-to-ship flow. It usually receives
 - Verify with focused tests first, then broader checks when the blast radius justifies it.
 - Run structured autoreview at the end of each implementation round, using a different engine family from the model that wrote the code.
 - For `/build execute`, delegate to one executor subagent and review its result; read [EXECUTE.md](EXECUTE.md).
-- If running as a Pi agent or inside the Pi harness, run `hunk skill path`, read the printed Hunk review skill, and use Hunk AI notes to walk through the changeset.
+- For a Hunk walkthrough, first verify Herdr with `test "${HERDR_ENV:-}" = 1`; when true, use the installed `herdr-hunk-walkthrough` skill and let it own Hunk session discovery, layout, and AI notes. If the skill is unavailable, report that instead of falling back to direct Hunk checks. When not in Herdr, skip the walkthrough and report that it requires a Herdr-managed pane.
 - Do not publish, close, or relabel the issue unless the user asks, or they invoke a publish flow such as `/apr`.
 
 ## Workflow
@@ -87,13 +87,15 @@ If the Claude engine is not installed, unavailable, or exits with an engine/tool
 
 Treat review findings as advisory: verify each accepted finding against the real code, fix accepted actionable issues, rerun focused tests, and rerun autoreview until it is clean or a remaining finding is consciously rejected.
 
+When a Hunk walkthrough is part of the round or closeout, use `herdr-hunk-walkthrough` only after confirming `HERDR_ENV=1`. Do not run `hunk skill path` or ad-hoc Hunk polling from `/build`; the walkthrough skill owns those checks. If the skill is not installed for the current agent, report that and leave Hunk untouched.
+
 ### 7. Close out
 
 End with a concise implementation report:
 
 - branch name, changed behavior, and important files touched
 - tests/checks run, plus autoreview command, engine, and result
-- Hunk AI-note walkthrough status when running in Pi
+- Herdr Hunk walkthrough status when running in Herdr
 - skipped checks, remaining risks, follow-up work, and whether the ticket appears fully satisfied
 
 If the user wants review and publish, hand off naturally to `/apr`.
