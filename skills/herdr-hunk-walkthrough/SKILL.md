@@ -68,13 +68,13 @@ Done when `herdr pane layout` shows a `ratio: 0.5` split and no unrelated pane w
 For a new pane, start Hunk through Herdr:
 
 ```bash
-herdr pane run <hunk-pane-id> "hunk diff origin/<base>...HEAD --mode split"
+herdr pane run <hunk-pane-id> "hunk diff origin/<base>...HEAD --mode auto"
 ```
 
 For an existing current-repo session:
 
 ```bash
-hunk session reload --repo "$PWD" -- diff origin/<base>...HEAD --mode split
+hunk session reload --repo "$PWD" -- diff origin/<base>...HEAD --mode auto
 ```
 
 Wait for registration, then verify the source and file count:
