@@ -45,7 +45,10 @@ SVG rules: `viewBox` ~720 wide; text in `s-text*` classes (mono, themed); keep l
 
 ## Aesthetics
 
-- Rotate aesthetics between generations. The template ships the warm-editorial default (Instrument Serif + DM Sans + JetBrains Mono; cream/terracotta/ochre/sage). Alternatives that hold up: deep-navy + gold editorial, paper/ink with sage, a real IDE palette (Nord, Gruvbox).
+- Two bundled template variants; rotate between generations and pick to fit the audience:
+  - **editorial** (`templates/explainer-template.html`) — quiet reading document. Warm-editorial default (Instrument Serif + DM Sans + JetBrains Mono; cream/terracotta/ochre/sage). Sidebar TOC, soft-bordered cards, Mermaid re-themed per color scheme. Best for calm deep-reading docs. Re-skins that hold up: deep-navy + gold editorial, paper/ink with sage, a real IDE palette (Nord, Gruvbox).
+  - **arcade** (`templates/explainer-template-arcade.html`) — loud game-manual poster. Archivo Black display + Atkinson Hyperlegible body + Space Mono; full-bleed bands alternating cream/coal/periwinkle with coral/yellow/green accents; sticky top tab nav; giant coral section numbers with band-colored text-stroke; chips and cards with 2–3px hard borders + offset shadows; "In our project" / "Watch out" as tilted green/coral ribbons; figures and the Mermaid assembly ALWAYS on a constant dark panel with a yellow frame, so all SVG + Mermaid colors are identical in light and dark schemes (only band backgrounds flip). Best for plans, reviews, and topics that benefit from energy. Keep band rotation strict (paper → coal → blue → …) and never place two same-color bands adjacent.
+  - Variant-specific checks for arcade: the intentional horizontal scroller is the top nav only — `document.documentElement.scrollWidth` must still equal `clientWidth`; `<b>` inside `.band--blue` prose renders as a yellow highlight, so keep bolded runs short there.
 - Forbidden regardless: Inter/Roboto as body, violet/indigo accents, gradient heading text, glowing shadows, emoji section icons.
 - Light AND dark palettes via `prefers-color-scheme`; Mermaid theme colors set from the same palette in both modes (the template shows the `isDark` + `themedSource` pattern).
 

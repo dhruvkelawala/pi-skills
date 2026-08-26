@@ -24,7 +24,11 @@ While agents run, prepare Phase 2: read the template and structure reference bel
 When research lands, generate the explainer. Read both bundled references BEFORE writing HTML:
 
 - [references/structure.md](references/structure.md) — the document anatomy: hero, "the one idea", building blocks, assembly, cheat sheet, sources; block fixtures; figure catalog; hard rules.
-- [templates/explainer-template.html](templates/explainer-template.html) — working skeleton: theme variables, TOC + scroll-spy, SVG figure classes, callouts, Mermaid shell with zoom/pan, glossary table. Copy its machinery wholesale; replace the placeholder content.
+- One of the bundled templates (pick per the variant notes in structure.md, and rotate between generations):
+  - [templates/explainer-template.html](templates/explainer-template.html) — **editorial** variant: quiet warm-editorial reading document (Instrument Serif + DM Sans; sidebar TOC, soft cards, per-scheme Mermaid theming).
+  - [templates/explainer-template-arcade.html](templates/explainer-template-arcade.html) — **arcade** variant: neo-brutalist game-manual poster (Archivo Black + Atkinson Hyperlegible + Space Mono; sticky tab nav, full-bleed alternating color bands, giant numbered section heads, hard-shadow chips/cards, tilted ribbon callouts, constant dark schematic panels so figures/Mermaid are identical in both schemes).
+
+  Either way, copy the chosen template's machinery wholesale; replace the placeholder content.
 
 Core principles (details in structure.md):
 
