@@ -34,8 +34,8 @@ On `main`, `master`, or the default branch, create `<type>/<short-description>` 
 
 ## 4. Verify and review
 
-1. Run the project's obvious formatter and focused tests. When `/verify` is available, run it in focused mode instead of guessing.
-2. Unless skipped, review the exact change with the helper. Uncommitted work:
+1. Run `/verify` in focused mode, or the project's obvious formatter and focused tests when it is unavailable. Skip this when the exact current HEAD already has a `/verify` result from earlier in this session, as it does when `/issue-to-pr` or `/pr-watch` calls in.
+2. Unless skipped, review the exact change with the helper. In the `/issue-to-pr` path this is deliberately a second opinion after `/code-review`: a different engine family reading the same base-to-HEAD diff once. Uncommitted work:
 
 ```bash
 "$AUTOREVIEW" --mode local --engine <engine> --max-priority P1 [--model claude-opus-5]
