@@ -85,7 +85,7 @@ Exit the loop when a review pass yields no accepted findings.
 
 ## 5. Publish
 
-Load and follow `/apr`. It runs autoreview, commits anything outstanding, pushes, and opens or updates a ready-for-review PR. Pass it the base so its branch review uses `base_sha`. In stacked mode tell it the branch is stacked so it publishes with `gh stack submit --open`; the PR's base must be the predecessor's head branch, never the default branch. Verify that with `gh pr view --json baseRefName` and stop if it is wrong.
+Load and follow `/apr --no-watch`. It runs autoreview, commits anything outstanding, pushes, and opens or updates a ready-for-review PR; the watch loop is stage 6. Pass it the base so its branch review uses `base_sha`. In stacked mode tell it the branch is stacked so it publishes with `gh stack submit --open`; the PR's base must be the predecessor's head branch, never the default branch. Verify that with `gh pr view --json baseRefName` and stop if it is wrong.
 
 Record the PR URL and HEAD.
 
@@ -93,7 +93,7 @@ Record the PR URL and HEAD.
 
 ## 6. Watch
 
-Load and follow `/pr-watch` with the remaining repair budget. It polls CI and the configured review agents, repairs findings through `/apr`, and returns when the gate is green or the budget is spent. Any HEAD change during this stage invalidates stages 3 to 5 for that HEAD; `/pr-watch` reruns focused tests and `/apr` itself, so a repair here needs no manual return to stage 3 unless the change is large enough that a full `/code-review` is warranted.
+Load and follow `/pr-watch` with the remaining repair budget. It polls CI and the configured review agents, repairs findings through `/apr --no-watch`, and returns when the gate is green or the budget is spent. Any HEAD change during this stage invalidates stages 3 to 5 for that HEAD; `/pr-watch` reruns focused tests and `/apr` itself, so a repair here needs no manual return to stage 3 unless the change is large enough that a full `/code-review` is warranted.
 
 In stacked mode, also recheck the predecessor before declaring ready: `gh pr view <predecessor> --json state,headRefOid`. If its HEAD moved, run `gh stack sync`, resolve conflicts, and return to stage 3 from the new base SHA. If it closed without merging, stop as `blocked`.
 

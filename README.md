@@ -4,7 +4,7 @@
 
 | Skill | Description |
 |-------|-------------|
-| [apr](skills/apr/SKILL.md) | Autoreview from a pinned base, commit, push, and open or update a ready-for-review PR, standalone or as a gh stack layer. |
+| [apr](skills/apr/SKILL.md) | Autoreview from a pinned base, commit, push, open or update a ready-for-review PR, then watch and repair PR review findings until clean. |
 | [build](skills/build/SKILL.md) | Implement one issue, ticket, plan, or confirmed contract as test-first vertical slices from a pinned base, one commit per slice, with review left to /code-review and /apr. |
 | [bro](skills/bro/SKILL.md) | Restate the last message in plain human language, with no jargon. |
 | [code-walkthrough](skills/code-walkthrough/SKILL.md) | Paced, file-by-file review of an unfamiliar or agent-written codebase, fixing as you go with a living checklist. |

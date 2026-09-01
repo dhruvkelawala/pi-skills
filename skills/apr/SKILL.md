@@ -1,18 +1,20 @@
 ---
 name: apr
-description: Autoreview, commit, push, and open or update a ready-for-review GitHub pull request, standalone or as a gh stack layer, reviewing from a pinned base. Use when the user invokes /apr, /apr codex, /apr --skip-review, asks to review and publish local changes, or when /issue-to-pr or /pr-watch reaches its publish step.
+description: Autoreview, commit, push, open or update a ready-for-review GitHub pull request, then watch it and repair PR review findings until CI and reviewers are clean. Standalone or a gh stack layer, reviewing from a pinned base. Use when the user invokes /apr, /apr codex, /apr --skip-review, asks to review and publish local changes, or when /issue-to-pr or /pr-watch reaches its publish step.
 ---
 
 # APR
 
-Autoreview first, then an intentional commit, push, and a ready-for-review PR. Review quality outranks publishing speed: nothing is pushed while an accepted finding is open.
+Autoreview first, then an intentional commit, push, a ready-for-review PR, and a watch loop that repairs what CI and PR reviewers report. Review quality outranks publishing speed: nothing is pushed while an accepted finding is open.
 
-Invoke as `/apr [claude|codex] [--skip-review] [--base <ref or sha>] [stack]`.
+Invoke as `/apr [claude|codex] [--skip-review] [--base <ref or sha>] [stack] [--no-watch] [--max-repairs N]`.
 
 - Engine defaults to `claude`. `codex` selects Codex. Anything else stops with a question.
 - `--skip-review` skips autoreview. The report then says so and claims no clean result.
 - `--base` pins the review range and the PR base. `/issue-to-pr` passes its `base_sha`.
 - `stack` publishes the current branch as a `gh stack` layer. Without it, stacking is detected: the branch is stacked when `gh stack view` succeeds and lists it.
+- `--no-watch` stops after the PR is published. `/issue-to-pr` and `/pr-watch` pass it because they own the watch loop themselves.
+- `--max-repairs` bounds the watch loop. Default is 10.
 
 ## 1. Resolve inputs once
 
@@ -71,6 +73,24 @@ Always ready for review, never draft. No `[codex]` or other tag in the title.
 
 **Complete when:** `gh pr view --json headRefOid` equals the local HEAD and the PR is open and non-draft.
 
+## 7. Watch and repair
+
+Skip with `--no-watch`. Otherwise loop until the PR is clean or the budget is spent:
+
+1. Run the gate from `/pr-watch`, configuring reviewers the way that skill describes:
+
+```bash
+node "$PR_WATCH_DIR/scripts/pr-gate.mjs" --repo "$OWNER/$REPO" --pr "$PR_NUMBER" \
+  --expected-head "$(git rev-parse HEAD)" [--reviewer <login>]... [--request-comment "<text>"] --watch --json
+```
+
+2. Exit `0`: the PR is clean. Stop.
+3. Exit `1` (timeout): report the open reasons and stop. Waiting longer is the user's call.
+4. Exit `2` (blocked): classify each reason as `/pr-watch` does. Failed checks and unresolved threads are repairs; a draft, closed, or mismatched-HEAD PR is a stop. For each repair, verify the finding against the code, fix it or reply with why it is wrong, and resolve the thread only after the fix is pushed or the rejection is posted.
+5. A repair that changed code counts one against the budget. Rerun step 4 in branch mode from the same base, then step 5 and step 6 to push and update the PR, then return to step 1 with the new HEAD.
+
+**Complete when:** the gate exits `0` for the current HEAD, or the budget or timeout is exhausted and the report lists every reason still open.
+
 ## PR body
 
 Real Markdown prose, in this order: what changed, why, user or developer impact, root cause when the PR fixes a bug, and the verification and autoreview command used. When called from `/issue-to-pr`, include the review-ready exceptions and anything `/verify` could not run.
@@ -81,4 +101,5 @@ Real Markdown prose, in this order: what changed, why, user or developer impact,
 - PR URL, base branch, and whether it is a stack layer
 - Tests run
 - Autoreview command and clean result, or `review skipped by --skip-review`
+- Gate result, reviewers required, and repairs made against the budget, or `watch skipped by --no-watch`
 - Findings fixed, and findings rejected with the reason

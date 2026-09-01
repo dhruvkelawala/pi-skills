@@ -40,7 +40,7 @@ node "$SKILL_DIR/scripts/pr-gate.mjs" --repo "$OWNER/$REPO" --pr "$PR_NUMBER" \
    - **Changes requested by a human**: address the review, then re-request review with `gh pr edit --add-reviewer`. Never dismiss a human review.
    - **Merge conflict or wrong base**: rebase onto the live base, rerun the project's tests, and push with `--force-with-lease`.
    - **Draft, closed, or mismatched HEAD**: stop and report; these are not repairs.
-6. A repair that changes code counts one against the budget. After each repair rerun the project's focused tests, then hand off to `/apr` so review, commit, and push happen through the normal publish path. Return to step 1 with the new HEAD.
+6. A repair that changes code counts one against the budget. After each repair rerun the project's focused tests, then hand off to `/apr --no-watch` so review, commit, and push happen through the normal publish path without a nested watch loop. Return to step 1 with the new HEAD.
 7. When the budget is exhausted, stop with a report of what remains open.
 
 **Complete when:** the gate exits `0` for the exact current HEAD, or the budget or timeout is exhausted and the report lists every reason still open.
