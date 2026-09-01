@@ -24,11 +24,13 @@ in.
 ## Stage 0 — Context harvest (founder profile)
 
 Ground everything in the builder, not abstract markets:
-1. Check persistent memory for an existing builder-preferences memory (e.g.
-   `dhruv-builder-preferences`). If found, use it and confirm only deltas.
-2. Scan their recent work: `ls -lat` the dev directory, read README headers
-   of the 6–10 most recently touched projects. Extract: stack strengths,
-   product taste, lived pains, unfair advantages.
+1. Check persistent memory for a builder-preferences entry (any memory
+   describing what the user likes to build, for whom, and their no-go
+   spaces). If found, use it and confirm only deltas.
+2. Scan their recent work. Ask once for the directory that holds their
+   projects if it is not already known, then `ls -lat` it and read README
+   headers of the 6–10 most recently touched projects. Extract: stack
+   strengths, product taste, lived pains, unfair advantages.
 3. Write a 5-line founder profile. This goes verbatim into every agent
    prompt — but mark it **"for taste calibration ONLY"**: new ideas must not
    be extensions of the builder's existing projects unless the user says
@@ -102,9 +104,9 @@ product.
 
 ## Stage 5 — Decide and pitch
 
-1. Maintain a run log (`idea-foundry/RESULTS.md` in the user's dev
-   directory, appending per round): all ideas, clusters, scores, red-team
-   verdicts with sources, cuts-with-reasons, bench.
+1. Maintain a run log at `idea-foundry/RESULTS.md` inside the projects
+   directory from Stage 0, appending per round: all ideas, clusters,
+   scores, red-team verdicts with sources, cuts-with-reasons, bench.
 2. **Pitch deck**: if the `visual-explainer` skill is available, invoke it
    and build a Shark Tank-style interactive HTML page (see
    `references/pitch-deck.md` for the required structure). Otherwise render
