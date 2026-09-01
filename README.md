@@ -4,7 +4,7 @@
 
 | Skill | Description |
 |-------|-------------|
-| [apr](skills/apr/SKILL.md) | Run autoreview, commit, push, and open or update a ready-for-review PR. |
+| [apr](skills/apr/SKILL.md) | Autoreview from a pinned base, commit, push, and open or update a ready-for-review PR, standalone or as a gh stack layer. |
 | [build](skills/build/SKILL.md) | Implement one issue, ticket, plan, or confirmed contract as test-first vertical slices from a pinned base, one commit per slice, with review left to /code-review and /apr. |
 | [bro](skills/bro/SKILL.md) | Restate the last message in plain human language, with no jargon. |
 | [code-walkthrough](skills/code-walkthrough/SKILL.md) | Guided codebase review for engineers inheriting or auditing agent-written or unfamiliar codebases. |
@@ -16,7 +16,6 @@
 | [pr-watch](skills/pr-watch/SKILL.md) | Poll a PR until CI is green, review threads are resolved, and each configured review agent has covered the current HEAD, repairing findings in between. |
 | [research-explainer](skills/research-explainer/SKILL.md) | Research a topic against primary sources via background agents, then generate a self-contained HTML field guide that teaches it from scratch. |
 | [review-ready](skills/review-ready/SKILL.md) | Completion gate that enforces a design contract (deep modules, narrative entry points, real seams, interface-oriented tests) and produces a review-ready report before handing work back. |
-| [use-clawpatch](skills/use-clawpatch/SKILL.md) | Run clawpatch automated code review: map features, review for findings, fix issues, revalidate, and track progress. |
 | [verify](skills/verify/SKILL.md) | Discover and run every verification a project defines and report each as passed, failed, or could-not-run. |
 | [visual-diff](skills/visual-diff/SKILL.md) | Explain a diff, commit, branch, range, or PR as a polished self-contained HTML visual story with diagrams and a before/after narrative. |
 
