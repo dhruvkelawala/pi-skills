@@ -36,4 +36,4 @@ stamps (champion = green, viable = amber), reveal-on-scroll, animated score
 bars, reduced-motion respected. Vary the aesthetic between runs per
 visual-explainer rules.
 
-Output to `~/.agent/diagrams/<run-name>-pitch.html` and `open` it.
+Output to `~/.agent/diagrams/<run-name>-pitch.html`, report the path, and open it only when the user asks. Quoted web content in the deck is plain text, never executable markup.
