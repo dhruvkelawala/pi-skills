@@ -1,25 +1,49 @@
 ---
 name: eli25
-description: Explain a topic simply and visually to a software engineer using a neo-brutalist HTML artifact. Use when the user invokes /eli25 or asks for a clear picture explainer that is approachable without being childish.
+description: Explain a topic simply and visually to a software engineer as a neo-brutalist HTML page with big pictures and few words, optionally deployed to Tailscale or Vercel. Use when the user invokes /eli25 or asks for a clear picture explainer that is approachable without being childish.
 ---
 
 # eli25
 
-Explain like I'm a software engineer who knows general programming but nothing
-about this specific topic, using an HTML artifact with big pictures and few
-words.
+Explain like I'm a software engineer who knows general programming but nothing about this specific topic. Big pictures, few words, real terms kept.
 
-Make it easy to grasp without talking down to me. Keep the real technical terms
-and explain unfamiliar domain terms in plain language. Give me a clear mental
-model, then show enough of the actual mechanism to stay accurate. Do not turn
-the explanation into a code review, exhaustive field guide, or reference manual
-unless I ask for that depth.
+Invoke as `/eli25 <topic> [--deploy tailscale|vercel|vercel-work]`. The topic is everything after the invocation that is not a flag. With no `--deploy`, the page is written locally and opened.
 
-Use a bold neo-brutalist visual style: thick dark borders, hard offset shadows,
-flat high-contrast colors, oversized heavy typography, blocky layouts, and
-little or no border radius. Keep diagrams large and immediately readable. Pick
-a small palette that fits the topic rather than defaulting to the same accent
-color every time. Do not use gradients, glassmorphism, soft shadows, muted
-dashboard cards, or polished corporate styling.
+## The reader
 
-Topic: $ARGUMENTS
+Knows how to program. Does not know this topic. Wants a mental model first, then enough of the real mechanism to trust it. Keep the technical terms and explain unfamiliar domain terms in plain language the first time. This is not a code review, a field guide, or a reference manual; for that depth, `/research-explainer`.
+
+## Shape
+
+Four panels, in this order, each one screen or less:
+
+1. **What it is.** One sentence, then one figure that is the whole mental model. A reader who stops here should still be right about the topic.
+2. **How it works.** Two or three panels, each one mechanism with one figure and at most three sentences. Real names for the parts.
+3. **Where it bites you.** The one or two mistakes an engineer new to this makes, stated as what happens and why.
+4. **Glossary.** Every domain term used above, one honest sentence each.
+
+Figures are inline SVG, large, and readable at a glance. Mermaid only when a flow genuinely has more than four nodes.
+
+## Style
+
+Neo-brutalist: thick dark borders, hard offset shadows, flat high-contrast colours, oversized heavy typography, blocky layout, little or no border radius. Pick a small palette that fits the topic instead of the same accent every time. Start from the machinery in `research-explainer/templates/explainer-template-arcade.html` in this repo and replace its content; that keeps the two skills visually consistent. Support light and dark via `prefers-color-scheme`.
+
+## Deliver
+
+1. Write the page to `~/.agent/diagrams/<topic-slug>-eli25.html`. Verify it renders: open headless, check both colour schemes, no horizontal overflow.
+2. Publish per `--deploy`:
+   - **none:** open the file in the browser.
+   - **tailscale:** serve the diagrams directory on the tailnet and report the page URL. Only devices on the tailnet can reach it.
+
+     ```bash
+     tailscale serve --bg --set-path /eli25 ~/.agent/diagrams
+     host=$(tailscale status --json | jq -r '.Self.DNSName | rtrimstr(".")')
+     echo "https://$host/eli25/<topic-slug>-eli25.html"
+     ```
+
+     If `/eli25` is already served, the file is live as soon as it is written; do not re-run serve.
+   - **vercel:** deploy under the personal Vercel scope. Copy the page to a temp directory as `index.html` and run `vercel deploy --yes` there; report the URL it prints. Anyone with the URL can view it.
+   - **vercel-work:** same, with `--scope "$VERCEL_WORK_SCOPE"`. If that variable is unset, run `vercel teams ls`, ask which team once, and tell the user to export it for next time. The team's deployment protection may require a Vercel login to view; say so with the URL.
+3. Report the local path, the URL if deployed, and the four panel titles.
+
+**Complete when:** the page passes the render check and the user has a path or URL they can open now.
