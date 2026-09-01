@@ -59,13 +59,13 @@ Run a complete closeout flow: structured autoreview first, then intentional comm
    - Run the autoreview helper on the current patch:
 
 ```bash
-<autoreview-helper> --mode local --engine <selected-engine> <model_args>
+<autoreview-helper> --mode local --engine <selected-engine> --max-priority P1 <model_args>
 ```
 
    - If the work is already committed on the branch, review the branch instead:
 
 ```bash
-<autoreview-helper> --mode branch --base origin/<base-branch> --engine <selected-engine> <model_args>
+<autoreview-helper> --mode branch --base origin/<base-branch> --engine <selected-engine> --max-priority P1 <model_args>
 ```
 
    - Verify every accepted finding against the real code before fixing it.
