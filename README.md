@@ -8,6 +8,7 @@
 | [build](skills/build/SKILL.md) | Build or delegate a single GitHub issue, Linear ticket, or current plan as a small, reviewable vertical slice. |
 | [bro](skills/bro/SKILL.md) | Restate the last message in plain human language, with no jargon. |
 | [code-walkthrough](skills/code-walkthrough/SKILL.md) | Guided codebase review for engineers inheriting or auditing agent-written or unfamiliar codebases. |
+| [eli25](skills/eli25/SKILL.md) | Explain a topic simply and visually to a software engineer using a neo-brutalist HTML artifact. |
 | [explain-diff](skills/explain-diff/SKILL.md) | Explain a diff, staged changes, a branch, or a PR in plain language with a concrete end-to-end trace. |
 | [herdr-hunk-walkthrough](skills/herdr-hunk-walkthrough/SKILL.md) | Open a full PR diff in a Herdr Hunk split or tab with a numbered code walkthrough. |
 | [idea-foundry](skills/idea-foundry/SKILL.md) | Generate or pressure-test ambitious project ideas through research, scoring, red-teaming, and pitching. |
