@@ -36,7 +36,7 @@ Or install a single skill:
 ```json
 {
   "skills": [
-    "git:github.com/dhruvkelawala/skills/skills/use-clawpatch"
+    "git:github.com/dhruvkelawala/skills/skills/apr"
   ]
 }
 ```
