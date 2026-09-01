@@ -1,110 +1,72 @@
 ---
 name: build
-description: Build or implement a single GitHub issue, Linear ticket, current plan, or confirmed contract as small, reviewable, test-first vertical slices. Use when the user invokes /build, /build plan, /build execute, asks to implement an issue/ticket, passes a PRD plus one agent-ready issue, or when /issue-to-pr hands over a confirmed contract for its implementation stage.
+description: Implement one GitHub issue, Linear ticket, conversation plan, or confirmed contract as test-first vertical slices on a branch cut from a pinned base, one commit per slice, with no review inside the loop. Use when the user invokes /build, /build plan, asks to implement an issue or ticket, or when /issue-to-pr hands over a confirmed contract for its implementation stage.
 ---
 
 # Build
 
-Build one agent-ready work item in small, reviewable chunks.
+Turn one work item into committed, tested slices. Build implements; it does not review or publish. Review belongs to `/code-review`, verification to `/verify`, publishing to `/apr`. Keeping those out of the loop is what makes build's output a clean diff from one pinned base.
 
-It has two entry modes. Which one applies decides which steps run:
+Invoke as `/build <issue number|URL|ticket>`, `/build plan` for the plan just made in conversation, or hand build a contract block (below). A contract skips step 1.
 
-- **Standalone**: the user invokes `/build`, `/build plan`, `/build execute`, or passes an issue, ticket, or PRD. Build owns everything from resolving the work item to the close-out report.
-- **Contract mode**: `/issue-to-pr` (or the user) hands over a confirmed contract. Build implements only. The caller has already pinned the base, created the branch, and owns review and publishing.
+## 1. Pin the contract
 
-A contract is present when the invocation includes a block with `base_sha`, `branch`, in-scope paths, acceptance criteria, and a test seam. Anything less is standalone.
+Standalone only. Produce the same contract block `/issue-to-pr` uses, so both paths implement from one shape.
 
-## Contract
+1. Read the full work item: title, body, comments, acceptance criteria, linked PRD, plan, ADR, or parent. For GitHub use `gh issue view`; for Linear use the Linear app when available. For `/build plan`, the conversation plan is the work item; if there is none, ask for it.
+2. Read enough code to name the public seam the tests will exercise and the paths that will change. When the shape of that seam is itself in question, `/codebase-design` supplies the vocabulary.
+3. `git fetch` and pin the base: the remote-tracking ref of the default branch and its SHA. If already on a feature branch with commits, the merge-base with the default branch is the base instead.
+4. Write the contract and show it once for confirmation:
 
-- Work one issue, ticket, plan, or contract at a time.
-- Treat `/build plan` as instructions to act on the plan just made in conversation. Otherwise the issue body, linked PRD, plan, acceptance criteria, or contract is the source of truth.
-- If the work item is too broad for one reviewable PR, stop and propose a split instead of silently doing a sprawling implementation. In contract mode, report this as a blocker; the contract is the caller's to change.
-- Keep changes scoped to the ticket or the contract's in-scope paths. Preserve unrelated dirty files.
-- Implement test-first at the agreed seam, following `/tdd`: one failing test, the minimal code that passes it, then the next vertical slice. Each chunk moves real behavior end-to-end, not one horizontal layer.
-- Commit each implementation round as its own conventional-commit commit before starting the next round.
-- If a Hunk review is open or in progress, do not stage diffs or commit until the review is closed or the user explicitly says to proceed; staging/committing removes the working-tree review diff from Hunk.
-- Never force-push ordinary changes. Force-push only after a rebase requires updating remote history, and use `--force-with-lease`, not `--force`.
-- Verify with focused tests first, then broader checks when the blast radius justifies it.
-- Standalone mode runs structured autoreview at the end of each round with an engine family different from the implementer. Contract mode runs none; the pipeline's code-review and apr stages review the whole diff once.
-- For `/build execute`, delegate to one executor subagent and review its result; read [EXECUTE.md](EXECUTE.md).
-- For a Hunk walkthrough, first verify Herdr with `test "${HERDR_ENV:-}" = 1`; when true, use the installed `herdr-hunk-walkthrough` skill and let it own Hunk session discovery, layout, and AI notes. If the skill is unavailable, report that instead of falling back to direct Hunk checks. When not in Herdr, skip the walkthrough and report that it requires a Herdr-managed pane.
-- Do not publish, close, or relabel the issue unless the user asks, or they invoke a publish flow such as `/apr`.
+```md
+contract:
+  issue: <url or "plan">
+  base_sha: <sha>
+  branch: <type>/<issue-number>-<short-description>
+  in_scope: <paths>
+  out_of_scope: <items>
+  acceptance_criteria: <list>
+  test_seam: <public interface tests exercise>
+  verification: <focused command>, <full command>
+```
 
-## Workflow
+5. If the item is too broad for one reviewable PR, propose the split here instead of implementing a sprawl. If acceptance criteria cannot be stated, say what is missing and ask the one question that unblocks it.
+6. Create `branch` from `base_sha` unless it already exists and is checked out.
 
-Contract mode starts at step 4. Standalone mode runs every step.
+**Complete when:** the user has confirmed a contract with at least one acceptance criterion, a named seam, and a pinned base SHA, and the branch is checked out.
 
-### 1. Resolve the work item
+## 2. Confirm the checkout
 
-For `/build plan`, skip issue/ticket lookup and use the current conversation plan plus any referenced PRD, ADR, handoff, or repo docs; if no plan is present, ask for it. Otherwise read the full issue or ticket: title, body, comments, labels/status, acceptance criteria, linked PRD/plan/ADR/handoff/parent issue, and blockers. For GitHub, use the GitHub app when available, otherwise `gh`; for Linear, use the Linear app when available.
+`git rev-parse HEAD` must equal `base_sha` or descend from it. The current branch must be `branch`. `git status` must be clean apart from files the contract names. A mismatch is a blocker to report, never something to fix by resetting or stashing another person's work.
 
-### 2. Establish repo state
+## 3. Slice
 
-Inspect the repository before editing: `git status -sb`, current branch/default branch, remotes, dirty files, and relevant docs such as `CONTEXT.md`, ADRs, plans, or domain glossary. If on `main`, `master`, or the default branch, sync the base branch and create a `{type}/{short-description}` branch, for example `feat/add-billing-export` or `fix/handle-empty-import-rows`, where `{type}` is a conventional commit type. If already on a feature branch, stay there unless the user asked for a new branch. Never revert unrelated user changes.
+Work one acceptance criterion at a time, following `/tdd` at `test_seam`:
 
-### 3. Check readiness
+1. Write one failing test that states the criterion in the project's domain language. Run it and see it fail for the right reason.
+2. Write the smallest code that passes it, at the real integration point, so the slice moves behavior end to end.
+3. Run the focused verification command for the touched paths and the typecheck when the project has one.
+4. Commit the slice with a conventional-commit subject. One slice, one commit.
+5. Next criterion.
 
-Before coding, confirm the issue is implementable:
+While editing: follow existing repo patterns, keep abstractions local unless a shared pattern already exists, touch only `in_scope` paths, and leave refactoring to review. If a change genuinely needs a path outside scope, stop and report it as a scope blocker with the reason. If live code has drifted from the work item in a way that changes the product decision, stop and explain the tradeoff.
 
-- acceptance criteria are clear enough
-- blockers are not still open
-- the requested behavior is not already implemented
-- the codebase has an obvious place for the change
-- the public seam tests will exercise is named, or can be named now and confirmed with the user
+**Complete when:** every acceptance criterion has a committed slice with a test that failed before it, or an explicit blocker, and `git status` is clean.
 
-If it is not ready, say why and ask the smallest necessary question. If the issue is raw or under-specified, recommend `/triage` or `/grill-with-docs` rather than guessing.
+## 4. Verify
 
-### 4. Make a chunk plan
+Run `/verify` in full mode once, at the final HEAD. On `red`, fix the cause as one more slice and rerun. On `incomplete`, record what could not run and why. Do not run any review here.
 
-In contract mode, first confirm the checkout: `git rev-parse HEAD` must be the contract's `base_sha` or descend from it, the current branch must be the contract's `branch`, and `git status` must be clean apart from files the contract names. A mismatch is a blocker, not something to fix here.
+## 5. Report
 
-Create a short checklist of reviewable chunks, one per acceptance criterion where possible. Each chunk should be small enough to inspect, but complete enough to compile and test. Prefer this shape:
+```md
+Build report:
+- Branch: <name> at <HEAD sha>, base <base_sha>
+- Criteria:
+  - <criterion>: <commit sha> / <test name>   (or: BLOCKED — <reason>)
+- Verification: green | red | incomplete — <one line>
+- Scope: <paths touched>; deviations, if any
+- Risks and follow-ups:
+```
 
-1. Write the narrow failing test at the agreed seam.
-2. Implement the smallest code path that makes it pass.
-3. Wire the behavior through the real integration point.
-4. Run focused verification.
-5. Standalone only: run structured autoreview, fix accepted findings, rerun focused verification.
-6. Commit the round with a conventional-commit subject unless a Hunk review is active.
-7. Repeat for the next acceptance criterion.
-
-Do not over-plan. Once the chunks are clear, start implementing.
-
-### 5. Implement
-
-Work through the chunks in order. While editing:
-
-- follow existing repo patterns
-- keep abstractions local unless the codebase already has a shared pattern
-- keep naming aligned with the domain model
-- update docs or plan trackers only when the repo convention or issue asks for it
-- avoid opportunistic refactors outside the ticket; refactoring belongs to review, not the red-green loop
-- in contract mode, touch only in-scope paths. If a change genuinely needs a path outside them, stop and report it as a scope blocker with the reason
-
-If live code has drifted from the issue or plan, compare against current behavior and adapt narrowly. If the drift changes the product decision, pause and explain the tradeoff.
-
-### 6. Verify and review
-
-Run the smallest meaningful checks first: focused unit/integration tests, typecheck/lint/format when relevant, app or browser-visible verification for user-facing UI changes, and regression commands named in the issue, PRD, contract, or repo docs. If a command cannot run because of missing env, dependencies, or external services, report that as a verification limit and still run any deterministic local checks available.
-
-**Standalone only.** After each implementation round, run `/autoreview` with an engine family different from the model that wrote the code: `--engine claude` when the implementer is an OpenAI model, `--engine codex` when it is an Anthropic model, and `--engine claude` when unknown. Pass the model `/apr` uses for that engine. If the selected engine cannot run because it is missing or exits with a tooling error before producing a review, rerun with the other engine and report the fallback in the closeout. Do not switch engines merely because findings are inconvenient.
-
-Treat review findings as advisory: verify each accepted finding against the real code, fix accepted actionable issues, rerun focused tests, and rerun autoreview until it is clean or a remaining finding is consciously rejected.
-
-**Contract mode.** Skip autoreview. The caller reviews the whole diff from `base_sha` once implementation is complete.
-
-When a Hunk walkthrough is part of the round or closeout, use `herdr-hunk-walkthrough` only after confirming `HERDR_ENV=1`. Do not run `hunk skill path` or ad-hoc Hunk polling from `/build`; the walkthrough skill owns those checks. If the skill is not installed for the current agent, report that and leave Hunk untouched.
-
-### 7. Close out
-
-End with a concise implementation report:
-
-- branch name, HEAD SHA, changed behavior, and important files touched
-- acceptance criteria, one line each: the commit and test that prove it, or the blocker that prevents it
-- tests/checks run, plus the autoreview command, engine, and result in standalone mode
-- Herdr Hunk walkthrough status when running in Herdr
-- skipped checks, remaining risks, follow-up work, and whether the work item appears fully satisfied
-
-In standalone mode, if the user wants review and publish, hand off naturally to `/apr`. In contract mode, return the report to the caller and stop; `git status` must be clean.
-
-**Complete when:** every acceptance criterion in the report has a commit and a test or an explicit blocker, focused verification passed on the final HEAD, and nothing is left uncommitted.
+Standalone: hand off with "next: `/code-review <base_sha>`, then `/apr`". In contract mode return the report to the caller and stop. Never publish, merge, close, or relabel the work item.

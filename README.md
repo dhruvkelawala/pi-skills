@@ -5,7 +5,7 @@
 | Skill | Description |
 |-------|-------------|
 | [apr](skills/apr/SKILL.md) | Run autoreview, commit, push, and open or update a ready-for-review PR. |
-| [build](skills/build/SKILL.md) | Build a single GitHub issue, Linear ticket, plan, or confirmed contract as small, test-first, reviewable vertical slices; contract mode is the implementation stage of /issue-to-pr. |
+| [build](skills/build/SKILL.md) | Implement one issue, ticket, plan, or confirmed contract as test-first vertical slices from a pinned base, one commit per slice, with review left to /code-review and /apr. |
 | [bro](skills/bro/SKILL.md) | Restate the last message in plain human language, with no jargon. |
 | [code-walkthrough](skills/code-walkthrough/SKILL.md) | Guided codebase review for engineers inheriting or auditing agent-written or unfamiliar codebases. |
 | [explain-diff](skills/explain-diff/SKILL.md) | Explain a diff, staged changes, a branch, or a PR in plain language with a concrete end-to-end trace. |
