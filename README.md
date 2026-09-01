@@ -5,13 +5,13 @@
 | Skill | Description |
 |-------|-------------|
 | [apr](skills/apr/SKILL.md) | Run autoreview, commit, push, and open or update a ready-for-review PR. |
-| [build](skills/build/SKILL.md) | Build or delegate a single GitHub issue, Linear ticket, or current plan as a small, reviewable vertical slice. |
+| [build](skills/build/SKILL.md) | Build a single GitHub issue, Linear ticket, plan, or confirmed contract as small, test-first, reviewable vertical slices; contract mode is the implementation stage of /issue-to-pr. |
 | [bro](skills/bro/SKILL.md) | Restate the last message in plain human language, with no jargon. |
 | [code-walkthrough](skills/code-walkthrough/SKILL.md) | Guided codebase review for engineers inheriting or auditing agent-written or unfamiliar codebases. |
 | [explain-diff](skills/explain-diff/SKILL.md) | Explain a diff, staged changes, a branch, or a PR in plain language with a concrete end-to-end trace. |
 | [herdr-hunk-walkthrough](skills/herdr-hunk-walkthrough/SKILL.md) | Open a full PR diff in a Herdr Hunk split or tab with a numbered code walkthrough. |
 | [idea-foundry](skills/idea-foundry/SKILL.md) | Generate or pressure-test ambitious project ideas through research, scoring, red-teaming, and pitching. |
-| [issue-to-pr](skills/issue-to-pr/SKILL.md) | Take one GitHub issue end to end into a merge-ready PR by chaining /implement, /code-review until clean, /verify, /apr, and /pr-watch, standalone or stacked. |
+| [issue-to-pr](skills/issue-to-pr/SKILL.md) | Take one GitHub issue end to end into a merge-ready PR by chaining /build, /code-review until clean, /verify, /apr, and /pr-watch, standalone or stacked. |
 | [product-description](skills/product-description/SKILL.md) | Build a prose "product description" repo describing what the user sees and exactly what happens when they act, drafted from code and tests, then verified and triaged into a bug list. |
 | [pr-watch](skills/pr-watch/SKILL.md) | Poll a PR until CI is green, review threads are resolved, and each configured review agent has covered the current HEAD, repairing findings in between. |
 | [research-explainer](skills/research-explainer/SKILL.md) | Research a topic against primary sources via background agents, then generate a self-contained HTML field guide that teaches it from scratch. |

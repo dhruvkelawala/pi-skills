@@ -1,6 +1,6 @@
 ---
 name: issue-to-pr
-description: Take one GitHub issue end to end into a merge-ready pull request by chaining /implement, /code-review until clean, /verify, /apr, and /pr-watch, standalone or as a stacked layer. Use when the user invokes /issue-to-pr with an issue number or URL, asks to ship an issue, or wants to resume such a run.
+description: Take one GitHub issue end to end into a merge-ready pull request by chaining /build, /code-review until clean, /verify, /apr, and /pr-watch, standalone or as a stacked layer. Use when the user invokes /issue-to-pr with an issue number or URL, asks to ship an issue, or wants to resume such a run.
 ---
 
 # Issue to PR
@@ -45,9 +45,23 @@ On reinvocation with an existing record, re-fetch and compare live state before 
 
 ## 2. Implement
 
-Load and follow `/implement` with the confirmed contract as its spec. It works test-first at the contract's seam, runs typecheck and single test files as it goes, and commits to the current branch. Its own trailing `/code-review` call is stage 3 here; do not run it twice.
+Load and follow `/build` in contract mode. Hand it this block verbatim so it skips work-item resolution, branch creation, and per-round autoreview:
 
-**Complete when:** every acceptance criterion maps to a committed change with a test, or to a named blocker, and `git status` is clean.
+```md
+contract:
+  issue: <url>
+  base_sha: <sha>
+  branch: <name>
+  in_scope: <paths>
+  out_of_scope: <items>
+  acceptance_criteria: <list>
+  test_seam: <public interface tests exercise>
+  verification: <focused command>, <full command>
+```
+
+Build works test-first at the seam, commits each round, and returns a report mapping every acceptance criterion to a commit and test or to a blocker. Review of the diff happens in stage 3, once.
+
+**Complete when:** the build report maps every acceptance criterion to a committed change with a test, or to a named blocker, and `git status` is clean.
 
 ## 3. Review until clean
 

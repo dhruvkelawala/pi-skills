@@ -23,7 +23,7 @@ Parse the first token after `execute` containing `/` as the executor model spec.
 ## Preconditions
 
 - The host must support subagents in isolated git worktrees. If not, say so and ask whether to run normal `/build` instead.
-- Resolve the work item using normal `/build` rules before dispatch: issue, ticket, `/build plan`, PRD/handoff, or current conversation plan.
+- Resolve the work item using normal `/build` rules before dispatch: issue, ticket, `/build plan`, PRD/handoff, current conversation plan, or a confirmed contract. In contract mode, pass the contract block through to the executor unchanged; do not re-resolve the issue or create a branch.
 - Confirm the work is narrow enough for one reviewable PR and that unrelated dirty files are protected.
 - Capture repo state: current branch, default branch, remote, dirty files, and intended `{type}/{short-description}` branch.
 
@@ -37,7 +37,7 @@ Inline all needed context in the prompt:
 - acceptance criteria and chunk plan
 - in-scope and out-of-scope files when known
 - branch, commit, force-push, and verification rules from `SKILL.md`
-- the autoreview engine rules from `SKILL.md`
+- the autoreview engine rules from `SKILL.md`, or in contract mode the instruction to skip autoreview because the caller reviews the whole diff
 
 Executor preamble:
 
@@ -47,10 +47,11 @@ Touch only scoped files. Commit each implementation round with a
 conventional-commit subject unless a Hunk review is active; if Hunk is
 reviewing the diff, stop before staging/committing and report that blocker.
 Never publish, merge, close, or relabel anything.
-Run focused verification and structured autoreview at the end of each
-implementation round. You are responsible for autoreview; if it cannot run,
-report the exact blocker and fallback used. Before reporting, audit every
-claim against actual tool output from this session.
+Run focused verification at the end of each implementation round, plus
+structured autoreview unless the contract mode instruction says to skip it.
+When autoreview is yours to run and it cannot run, report the exact blocker
+and fallback used. Before reporting, audit every claim against actual tool
+output from this session.
 ```
 
 Report format:
@@ -75,7 +76,7 @@ The main agent must:
 1. Inspect the full diff and verify every hunk maps to the work item.
 2. Reject out-of-scope files unless the executor documented a necessary deviation.
 3. Re-run focused tests or done criteria when practical.
-4. Confirm the executor ran autoreview, handled accepted findings, and reported the command.
+4. Confirm the executor ran autoreview, handled accepted findings, and reported the command. In contract mode, confirm instead that it skipped autoreview and left review to the caller.
 5. Check commits are conventional, round-scoped, and avoid forbidden force-push behavior.
 
 Do not replace a missing executor autoreview with a main-agent autoreview. Send the executor back to run it.
