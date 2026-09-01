@@ -1,59 +1,55 @@
 ---
 name: explain-diff
-description: Explain a diff, staged changes, a branch, or a PR in plain language — what problem it solves, the one key insight, and a concrete end-to-end trace of real data. Use when the user asks to "explain this PR", "explain the diff", "explain the staged/branch changes", "walk me through these changes", "what does this change do", or says they don't understand a change.
+description: Explain a diff, staged changes, a commit, a branch, or a PR in plain language as a fixed teaching spine — the problem, the moving parts, the one key trick, a concrete end-to-end trace, hidden infrastructure, and what the tests guarantee. Use when the user asks to "explain this PR", "explain the diff", "walk me through these changes", "what does this change do", or says they don't understand a change. Also the spine source for visual-diff.
 ---
 
-# Explain a Diff / PR
+# Explain a diff
 
-Explain code changes so a smart reader unfamiliar with this codebase actually
-gets it: ground-up, plain language, one concrete example traced end-to-end.
-Group by concept, never walk files top-to-bottom.
+Explain code changes so a smart reader unfamiliar with this codebase actually gets it: ground-up, plain language, one concrete example traced end-to-end. Group by concept, never walk files top-to-bottom.
 
 ## 1. Get the changes
 
 Pick the command matching what they mean by "the changes":
 
-- Working tree: `git diff`
+- Working tree: `git diff` plus `git diff --cached`
 - Staged: `git diff --cached`
-- Branch vs base: `git diff $(git merge-base main HEAD)..HEAD --stat`, then read files
-- A commit: `git show <sha>`
-- A PR: `gh pr view <n>` and `gh pr diff <n>`
+- Commit: `git show <sha>`
+- Branch: `git diff $(git merge-base <default-branch> HEAD)...HEAD`
+- Range: `git diff <from>..<to>`
+- PR: `gh pr view <n>` then `gh pr diff <n>`
 
-Then **read the changed files themselves** (not just the diff) and find the
-*why*: the linked issue, PR body, ADR, or commit message. Never explain a change
-you haven't understood.
+With no explicit target, prefer uncommitted changes when present, otherwise the branch against the default branch. Record the resolved endpoints so the comparison is unambiguous.
 
-## 2. Explain with this structure (always this order)
+Then read the changed files themselves, not just the hunks, plus the callers and tests around them, and find the why: the linked issue, PR body, ADR, plan, or commit message. Label rationale inferred only from code as an inference. Never explain a change you have not understood.
 
-1. **The problem** — why this change exists at all. 1–2 sentences, no code yet.
-2. **The moving parts** — group the change into 2–4 conceptual pieces, named in
-   plain terms. A concept list, not a file list.
-3. **The one key trick** — the single insight that makes it click (a method, a
-   flag, a pattern, an inversion). Call it out explicitly and isolate it.
-4. **Trace one concrete example** — take a realistic input and follow it through
-   each part, showing what happens to it at each step. Include one made-up but
-   believable value to demonstrate the edge behavior (e.g. an unknown field).
-5. **The non-obvious infrastructure** — name the part a newcomer would never
-   guess (e.g. "we don't build our own store, we reuse X").
-6. **What the tests prove** — restate each test as a plain-language *guarantee*,
-   not a description of what it does.
-7. **Offer to zoom in** — list the 3–4 likeliest sticking points as labelled
-   options (a/b/c/d) and offer a live demo if the code is runnable.
+**Complete when:** the exact before and after revisions and the changed-file set are known, and every claim you plan to make has a file and line behind it.
 
-## 3. Tone rules
+## 2. The teaching spine
 
-- Plain language. Expand jargon on first use ("a workflow — basically an HTTP endpoint").
-- One analogy per hard concept.
-- Prefer a traced example over abstract prose.
-- Group by what the code *does*, never file-by-file top-to-bottom.
-- End by asking which part is fuzziest — don't assume it all landed.
+Always this order. It is the single source for every explain-shaped skill in this repo.
 
-## Worked shape (example output skeleton)
+1. **The problem.** Why this change exists at all. One or two sentences, no code yet.
+2. **The moving parts.** Two to four conceptual pieces with plain names. A concept list, not a file list.
+3. **The one key trick.** The single insight that makes it click: a method, a flag, a pattern, an inversion. Isolate it.
+4. **Trace one concrete example.** A realistic input followed through each part, showing what happens to it at each step. Include one believable edge value when it reveals important behavior.
+5. **The hidden infrastructure.** The part a newcomer would never guess: reused framework behavior, storage, runtime, generated code, implicit coupling.
+6. **What the tests guarantee.** Each relevant test restated as a promise the system now keeps, not a description of what the test does. Distinguish tests read from tests actually run.
+7. **Zoom in.** Three or four labeled sticking points the reader can pick from, and a live demo when the code is runnable.
+
+## 3. Tone
+
+- Plain language. Expand jargon on first use.
+- One analogy per hard concept, at most.
+- A traced example beats abstract prose.
+- Use the repository's own names for domain concepts; read `CONTEXT.md` first when it exists. Invent no replacements.
+- End by asking which part is still fuzziest.
+
+## Worked shape
 
 > **Problem:** sources emit different formats; we need one internal shape that never drops fields.
-> **Parts:** (1) the shape, (2) the intake endpoint, (3) where it's stored.
+> **Parts:** (1) the shape, (2) the intake endpoint, (3) where it is stored.
 > **Key trick:** `.passthrough()` keeps unknown fields instead of deleting them.
-> **Trace:** POST `{…, weirdField: 123}` → validated → stored → read back, `weirdField` still there even after restart.
+> **Trace:** POST `{..., weirdField: 123}` → validated → stored → read back; `weirdField` still there after a restart.
 > **Hidden infra:** storage is the framework's built-in run log, not a new table.
-> **Tests prove:** (1) unknown fields survive validation; (2) they survive a server restart.
-> **Zoom in?** (a) what a workflow is (b) how "logging" counts as saving (c) why passthrough matters
+> **Tests guarantee:** (1) unknown fields survive validation; (2) they survive a server restart.
+> **Zoom in?** (a) what a workflow is (b) how logging counts as saving (c) why passthrough matters
