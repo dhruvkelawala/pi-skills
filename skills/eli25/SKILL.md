@@ -26,11 +26,20 @@ Figures are inline SVG, large, and readable at a glance. Mermaid only when a flo
 
 ## Style
 
-Neo-brutalist: thick dark borders, hard offset shadows, flat high-contrast colours, oversized heavy typography, blocky layout, little or no border radius. Pick a small palette that fits the topic instead of the same accent every time. Start from the machinery in `research-explainer/templates/explainer-template-arcade.html` in this repo and replace its content; that keeps the two skills visually consistent. Support light and dark via `prefers-color-scheme`.
+Neo-brutalist: thick dark borders, hard offset shadows, flat high-contrast colours, oversized heavy typography, blocky layout, little or no border radius. Pick a small palette that fits the topic instead of the same accent every time. Start from the machinery in `research-explainer/templates/explainer-template-arcade.html` in this repo and replace its content; that keeps the two skills visually consistent.
+
+## Theme
+
+Three states: system (default), light, dark. The page follows the OS until the reader picks one, and remembers the pick.
+
+- Define every colour as a token on `:root` for light. Redefine only the tokens under `@media (prefers-color-scheme: dark)` guarded as `:root:not([data-theme="light"])`, and again under `:root[data-theme="dark"]`, so an explicit choice wins in both directions. The arcade template's dark blocks are media-query only; add the two guards when you copy them.
+- A small fixed toggle button in a corner, styled in the same brutalist idiom, cycles system → light → dark and shows the current state with one glyph or word. Three states, not two, so the reader can return to following the OS.
+- Persist the choice in `localStorage` under one key, inside try/catch, and apply it from an inline script in `<head>` before the stylesheet paints so there is no flash. Missing or unreadable storage means system.
+- Both schemes must pass the render check: figures, borders, and shadows legible in each, and nothing that only exists inside one media block.
 
 ## Deliver
 
-1. Write the page to `~/.agent/diagrams/<topic-slug>-eli25.html`. Verify it renders: open headless, check both colour schemes, no horizontal overflow.
+1. Write the page to `~/.agent/diagrams/<topic-slug>-eli25.html`. Verify it renders: open headless, check system, light, and dark via the toggle, no horizontal overflow.
 2. Publish per `--deploy`:
    - **none:** open the file in the browser.
    - **tailscale:** serve the diagrams directory on the tailnet and report the page URL. Only devices on the tailnet can reach it.
