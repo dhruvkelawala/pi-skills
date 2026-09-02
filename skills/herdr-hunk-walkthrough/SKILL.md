@@ -1,7 +1,7 @@
 ---
 name: herdr-hunk-walkthrough
 description: Open a branch or pull request’s full changes in Hunk inside a new Herdr tab (or a 50/50 split with `split`), then add a numbered, narrative code walkthrough. Use when the user asks to review, explain, or walk through a diff/PR in Hunk on Herdr, including /herdr-hunk-walkthrough split.
-compatibility: Requires a Herdr-managed pane plus git, gh, herdr, hunk, and jq on PATH.
+compatibility: Requires a Herdr-managed pane plus git, gh, herdr, hunk, and node on PATH.
 ---
 
 # Herdr Hunk Walkthrough
@@ -18,14 +18,6 @@ Turn a finished changeset into a guided Hunk review: one Herdr-hosted Hunk surfa
 ## Mode
 
 Default to `tab` mode: open Hunk in a new Herdr tab in the caller's workspace. If the invocation includes a standalone `split` token, as in `/herdr-hunk-walkthrough split`, use `split` mode: open Hunk in a 50/50 pane split beside the caller instead. A PR number, branch name, or other work item may follow the mode token.
-
-If the user changes mode after surface creation, preserve the Hunk process whenever it has started. For a `split` run the user then wants in a tab, move the live pane and parse its new pane/tab IDs:
-
-```bash
-herdr pane move <hunk-pane-id> --new-tab --workspace "$HERDR_WORKSPACE_ID" --label "Hunk: $(basename "$PWD")" --focus
-```
-
-Do not launch a duplicate Hunk. If Hunk has not started, inspect the obsolete surface first with `herdr pane process-info --pane <created-pane-id>`; close it only when it is still an empty shell and only after the requested surface exists. Close only pane/tab IDs created by this run; never clean up a reused or user-owned surface.
 
 ## 1. Pin the changeset
 
@@ -67,6 +59,7 @@ Resolve these bundled files relative to this `SKILL.md` and keep their absolute 
 
 - `extensions/walkthrough-order.ts` — passive Hunk transform that applies an exact, unexpired file order
 - `scripts/write-order.mjs` — validates and writes that order under the checkout's private Git metadata
+- `scripts/find-session.mjs` — snapshots Hunk sessions and identifies the one this run launched
 
 Never substitute a repo-controlled extension. Hunk extensions execute with the user's permissions.
 
@@ -80,24 +73,19 @@ herdr pane current --current
 herdr pane layout --pane "$HERDR_PANE_ID"
 ```
 
-Look for an existing Hunk pane/session for this repo before creating one. Hunk's list JSON can be large, so capture it before rendering a repo-filtered, row-bounded projection:
+Snapshot the Hunk sessions that already exist, then look at this repo's rows and the workspace panes:
 
 ```bash
 repo_root="$(git rev-parse --show-toplevel)"
 before_sessions="$(mktemp)"
-hunk session list --json > "$before_sessions"
-jq -r --arg repo "$repo_root" '
-  limit(50; .sessions[]
-    | select(.repoRoot == $repo)
-    | [.sessionId, .repoRoot, .title, (.pid|tostring), (.fileCount|tostring)]
-    | @tsv)
-' "$before_sessions"
+node <absolute-find-session-script> snapshot > "$before_sessions"
+node <absolute-find-session-script> list --repo "$repo_root"
 herdr pane list --workspace "$HERDR_WORKSPACE_ID"
 ```
 
-Keep the snapshot until a new session is identified. The projection is the only session-list output needed: at most 50 rows containing session ID, repo, title, PID, and file count.
+Keep `$before_sessions` until the new session is identified in step 3.
 
-- Reuse a live Hunk session for this repo only when it already matches the requested surface **and was launched by this workflow with the bundled walkthrough-order extension**. Extension registration happens only at process startup; when provenance is uncertain, preserve the session and create the requested surface for this run. If the live session sits on the other surface kind (a split when `tab` is in effect, or a tab when `split` was requested), leave it alone and create the requested surface.
+- Reuse only a session this run created earlier (for example after a mode change). Any other live Hunk session for this repo, whoever started it, stays untouched: it was not launched with the walkthrough-order extension, and extensions register only at process start. Create the requested surface beside it.
 - In `tab` mode, otherwise create a new tab in the caller’s workspace, preserving cwd and keeping focus unchanged:
 
 ```bash
@@ -116,6 +104,8 @@ Parse the new pane ID from `.result.pane.pane_id`; never guess it.
 
 Done when the requested surface exists: `tab` mode has a labeled Hunk tab with a root pane, or `split` mode has a `ratio: 0.5` split. No unrelated pane or tab was replaced or closed.
 
+If the user changes mode after the surface exists, keep the Hunk process: move a running split pane into a tab with `herdr pane move <hunk-pane-id> --new-tab --workspace "$HERDR_WORKSPACE_ID" --label "Hunk: $(basename "$PWD")" --focus` and parse the new IDs. If Hunk has not started yet, create the requested surface first, then close the empty one only after `herdr pane process-info --pane <created-pane-id>` shows a bare shell. Close only IDs this run created.
+
 ## 3. Load the complete diff
 
 This workflow is the deliberate exception to the generic Hunk-review rule that asks the user to launch Hunk: start the interactive TUI only through `herdr pane run` in its user-visible surface, never directly in the agent's terminal.
@@ -126,30 +116,16 @@ For a new pane, start Hunk through Herdr with the immutable range:
 herdr pane run <hunk-pane-id> "hunk diff '$review_range' --mode auto --extension '<absolute-walkthrough-extension>'"
 ```
 
-Wait for registration, capture a second session snapshot, and identify exactly one new session for this repo by set difference:
+Identify the session this launch created. The helper polls until exactly one session is both absent from the snapshot and running as a foreground process of the created pane; anything else exits non-zero:
 
 ```bash
-after_sessions="$(mktemp)"
-pane_processes="$(mktemp)"
-hunk session list --json > "$after_sessions"
-herdr pane process-info --pane <hunk-pane-id> > "$pane_processes"
-hunk_session_id="$(jq -r --arg repo "$repo_root" \
-  --slurpfile before "$before_sessions" \
-  --slurpfile pane "$pane_processes" '
-  ($before[0].sessions | map(.sessionId)) as $known
-  | ($pane[0].result.process_info.foreground_processes | map(.pid)) as $pane_pids
-  | .sessions[]
-  | select(.repoRoot == $repo)
-  | select((.sessionId as $id | $known | index($id)) == null)
-  | select(.pid as $pid | ($pane_pids | index($pid)) != null)
-  | .sessionId
-' "$after_sessions")"
-test "$(printf '%s\n' "$hunk_session_id" | sed '/^$/d' | wc -l | tr -d ' ')" = 1
+hunk_session_id="$(node <absolute-find-session-script> identify \
+  --repo "$repo_root" --pane <hunk-pane-id> --before "$before_sessions")"
 ```
 
-Always require both proofs: the session is new since the first snapshot **and** its PID belongs to the created Herdr pane. If no ID appears yet, repeat both the session and pane-process snapshots after a short delay. Never accept a same-repo candidate by timing or repo alone.
+A non-zero exit means no session or more than one; do not guess from timing or repo alone. Inspect the pane and retry the launch.
 
-For a reused session, select its exact ID from the bounded discovery projection before reloading it:
+For a session this run created earlier, use its recorded ID directly before reloading it:
 
 ```bash
 hunk_session_id='<selected-session-id>'
@@ -165,7 +141,7 @@ hunk session get "$hunk_session_id" --json
 hunk session review "$hunk_session_id" --json
 ```
 
-The Hunk file set must equal `git diff --name-only "$review_range"`. Reload the same session ID if it does not. Record Hunk's current file order; unannotated files retain this relative order later. Stop reading the session/process snapshots after the ID is pinned; host temporary-file cleanup owns them.
+The Hunk file set must equal `git diff --name-only "$review_range"`. Reload the same session ID if it does not. Record Hunk's current file order; unannotated files retain this relative order later. `$before_sessions` is no longer needed once the ID is pinned.
 
 ## 4. Build and order the walkthrough
 
@@ -203,7 +179,7 @@ hunk session reload "$hunk_session_id" -- diff "$review_range"
 hunk session review "$hunk_session_id" --json
 ```
 
-The returned file paths must exactly equal the order sidecar. A mismatch means the session did not load the bundled extension; do not apply comments to a misordered stream. Preserve that session, start a fresh Hunk process with `--extension <absolute-walkthrough-extension>`, and replace `hunk_session_id` using the same before/after set-difference procedure before continuing.
+The returned file paths must exactly equal the order sidecar. A mismatch means the session did not load the bundled extension; do not apply comments to a misordered stream. Preserve that session, take a new snapshot, start a fresh Hunk process with `--extension <absolute-walkthrough-extension>`, and replace `hunk_session_id` with the helper's `identify` result before continuing.
 
 Once order is verified, use `hunk session comment apply "$hunk_session_id" --stdin` once with the validated JSON batch. List comments from that same session ID afterwards and confirm their numbered summaries appear in ascending order under Hunk's next-comment navigation.
 
