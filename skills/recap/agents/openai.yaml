@@ -1,0 +1,4 @@
+interface:
+  display_name: "Recap"
+  short_description: "Brief of this session for tomorrow: shipped, decided, in flight, next"
+  default_prompt: "Use $recap to write a brief of what we did this session and save it for the next one."
