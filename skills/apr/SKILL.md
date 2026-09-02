@@ -7,12 +7,12 @@ description: Autoreview, commit, push, open or update a ready-for-review GitHub 
 
 Autoreview first, then an intentional commit, push, a ready-for-review PR, and a watch loop that repairs what CI and PR reviewers report. Review quality outranks publishing speed: nothing is pushed while an accepted finding is open.
 
-Invoke as `/apr [claude|codex] [--skip-review] [--base <ref or sha>] [stack] [--no-watch] [--max-repairs N]`.
+Invoke as `/apr [claude|codex] [--skip-review] [--base <ref or sha>] [stack [<predecessor PR URL>]] [--no-watch] [--max-repairs N]`.
 
 - Engine defaults to `claude`. `codex` selects Codex. Anything else stops with a question.
 - `--skip-review` skips autoreview. The report then says so and claims no clean result.
 - `--base` pins the review range and the PR base. `/issue-to-pr` passes its `base_sha`.
-- `stack` publishes the current branch as a `gh stack` layer. Without it, stacking is detected: the branch is stacked when `gh stack view` succeeds and lists it.
+- `stack [<predecessor PR URL>]` publishes the current branch as a layer on that PR. Without a URL, stacking is detected: the branch is stacked when `gh stack view` succeeds and lists it, and its predecessor is the branch below it.
 - `--no-watch` stops after the PR is published. `/issue-to-pr` and `/pr-watch` pass it because they own the watch loop themselves.
 - `--max-repairs` bounds the watch loop. Default is 10.
 
@@ -60,7 +60,9 @@ Stage only the in-scope files. Commit with a conventional-commit subject that wi
 
 Check for an existing PR first: `gh pr view --json url,state,baseRefName,headRefOid`.
 
-- **Stacked:** `gh stack push`, then `gh stack submit --open` to create or update every PR in the stack as ready for review. Confirm with `gh pr view --json baseRefName` that this branch's PR targets the predecessor branch, not the trunk. If it targets the trunk, stop and report.
+- **Stacked, tracked locally** (`gh stack view` lists the branch): `gh stack push`, then `gh stack submit --open` to create or update every PR in the stack as ready for review.
+- **Stacked, not tracked** (branch created outside gh stack, common in a fresh worktree): `git push -u origin "$(git branch --show-current)"`, then `gh stack link <predecessor PR URL> "$(git branch --show-current)" --open`, which creates or updates the PR with the predecessor's head branch as base and joins the stack on GitHub without local tracking.
+- For both, confirm with `gh pr view --json baseRefName` that this branch's PR targets the predecessor branch, not the trunk. If it targets the trunk, stop and report.
 - **Standalone, no PR yet:** `git push -u origin "$(git branch --show-current)"`, then:
 
 ```bash
