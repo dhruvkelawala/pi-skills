@@ -1,6 +1,6 @@
 ---
 name: herdr-hunk-walkthrough
-description: Open a branch or pull request’s full changes in Hunk inside a 50/50 Herdr split or a new Herdr tab, then add a numbered, narrative code walkthrough. Use when the user asks to review, explain, or walk through a diff/PR in Hunk on Herdr, including /herdr-hunk-walkthrough tab.
+description: Open a branch or pull request’s full changes in Hunk inside a new Herdr tab (or a 50/50 split with `split`), then add a numbered, narrative code walkthrough. Use when the user asks to review, explain, or walk through a diff/PR in Hunk on Herdr, including /herdr-hunk-walkthrough split.
 compatibility: Requires a Herdr-managed pane plus git, gh, herdr, hunk, and jq on PATH.
 ---
 
@@ -17,15 +17,15 @@ Turn a finished changeset into a guided Hunk review: one Herdr-hosted Hunk surfa
 
 ## Mode
 
-Default to `split` mode: open Hunk in a 50/50 pane split beside the caller. If the invocation includes a standalone `tab` token, as in `/herdr-hunk-walkthrough tab`, use `tab` mode: open Hunk in a new Herdr tab instead of splitting the current tab. A PR number, branch name, or other work item may follow the mode token.
+Default to `tab` mode: open Hunk in a new Herdr tab in the caller's workspace. If the invocation includes a standalone `split` token, as in `/herdr-hunk-walkthrough split`, use `split` mode: open Hunk in a 50/50 pane split beside the caller instead. A PR number, branch name, or other work item may follow the mode token.
 
-If the user changes mode after surface creation, preserve the Hunk process whenever it has started. For split → tab after launch, move the live pane and parse its new pane/tab IDs:
+If the user changes mode after surface creation, preserve the Hunk process whenever it has started. For a `split` run the user then wants in a tab, move the live pane and parse its new pane/tab IDs:
 
 ```bash
 herdr pane move <hunk-pane-id> --new-tab --workspace "$HERDR_WORKSPACE_ID" --label "Hunk: $(basename "$PWD")" --focus
 ```
 
-Do not launch a duplicate Hunk. If Hunk has not started, inspect the obsolete split first with `herdr pane process-info --pane <created-split-pane-id>`; close it only when it is still an empty shell and only after the requested tab exists. Close only pane/tab IDs created by this run; never clean up a reused or user-owned surface.
+Do not launch a duplicate Hunk. If Hunk has not started, inspect the obsolete surface first with `herdr pane process-info --pane <created-pane-id>`; close it only when it is still an empty shell and only after the requested surface exists. Close only pane/tab IDs created by this run; never clean up a reused or user-owned surface.
 
 ## 1. Pin the changeset
 
@@ -97,15 +97,7 @@ herdr pane list --workspace "$HERDR_WORKSPACE_ID"
 
 Keep the snapshot until a new session is identified. The projection is the only session-list output needed: at most 50 rows containing session ID, repo, title, PID, and file count.
 
-- Reuse a live Hunk session for this repo only when it already matches the requested surface **and was launched by this workflow with the bundled walkthrough-order extension**. Extension registration happens only at process startup; when provenance is uncertain, preserve the session and create the requested surface for this run. If `tab` was requested and the live session is in a split, leave it alone and create a tab surface.
-- In `split` mode, otherwise split the caller’s wide pane to the right at exactly half width, preserving cwd and focus:
-
-```bash
-herdr pane split --pane "$HERDR_PANE_ID" --direction right --ratio 0.5 --cwd "$PWD" --no-focus
-```
-
-Parse the new pane ID from `.result.pane.pane_id`; never guess it.
-
+- Reuse a live Hunk session for this repo only when it already matches the requested surface **and was launched by this workflow with the bundled walkthrough-order extension**. Extension registration happens only at process startup; when provenance is uncertain, preserve the session and create the requested surface for this run. If the live session sits on the other surface kind (a split when `tab` is in effect, or a tab when `split` was requested), leave it alone and create the requested surface.
 - In `tab` mode, otherwise create a new tab in the caller’s workspace, preserving cwd and keeping focus unchanged:
 
 ```bash
@@ -114,7 +106,15 @@ herdr tab create --workspace "$HERDR_WORKSPACE_ID" --cwd "$PWD" --label "Hunk: $
 
 Parse the Hunk tab ID from `.result.tab.tab_id` and the Hunk pane ID from `.result.root_pane.pane_id`; never guess either.
 
-Done when the requested surface exists: `split` mode has a `ratio: 0.5` split, or `tab` mode has a labeled Hunk tab with a root pane. No unrelated pane or tab was replaced or closed.
+- In `split` mode, otherwise split the caller’s wide pane to the right at exactly half width, preserving cwd and focus:
+
+```bash
+herdr pane split --pane "$HERDR_PANE_ID" --direction right --ratio 0.5 --cwd "$PWD" --no-focus
+```
+
+Parse the new pane ID from `.result.pane.pane_id`; never guess it.
+
+Done when the requested surface exists: `tab` mode has a labeled Hunk tab with a root pane, or `split` mode has a `ratio: 0.5` split. No unrelated pane or tab was replaced or closed.
 
 ## 3. Load the complete diff
 
@@ -219,16 +219,16 @@ Navigate to waypoint 1:
 hunk session navigate "$hunk_session_id" --file <first-file> --hunk <n>
 ```
 
-Then focus the requested surface. In `split` mode, focus the Hunk pane from the caller; use the actual neighbor direction if the Hunk pane was reused elsewhere:
-
-```bash
-herdr pane focus --direction right --pane "$HERDR_PANE_ID"
-```
-
-In `tab` mode, focus the Hunk tab:
+Then focus the requested surface. In `tab` mode, focus the Hunk tab:
 
 ```bash
 herdr tab focus <hunk-tab-id>
+```
+
+In `split` mode, focus the Hunk pane from the caller; use the actual neighbor direction if the Hunk pane was reused elsewhere:
+
+```bash
+herdr pane focus --direction right --pane "$HERDR_PANE_ID"
 ```
 
 Verify Hunk and the requested Herdr surface:
@@ -238,22 +238,22 @@ hunk session context "$hunk_session_id" --json
 hunk session comment list "$hunk_session_id"
 ```
 
-For `split` mode:
-
-```bash
-herdr pane layout --pane "$HERDR_PANE_ID"
-```
-
 For `tab` mode:
 
 ```bash
 herdr tab get <hunk-tab-id>
 ```
 
+For `split` mode:
+
+```bash
+herdr pane layout --pane "$HERDR_PANE_ID"
+```
+
 Report only:
 
 - loaded range and file count
-- requested Herdr surface: 50/50 split or new tab, and focused Hunk pane/tab
+- requested Herdr surface: new tab or 50/50 split, and focused Hunk pane/tab
 - walkthrough comment count
 - instruction to use Hunk’s next-comment navigation
 
