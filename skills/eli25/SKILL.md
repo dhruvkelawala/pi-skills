@@ -40,8 +40,15 @@ Three states: system (default), light, dark. The page follows the OS until the r
 ## Deliver
 
 1. Write the page to `~/.agent/diagrams/<topic-slug>-eli25.html`. Verify it renders: open headless, check system, light, and dark via the toggle, no horizontal overflow.
-2. Publish per `--deploy`:
-   - **none:** open the file in the browser.
+2. Show it. When `command -v terminal-browser` succeeds, open the page beside the conversation and stop there for the local case:
+
+     ```bash
+     terminal-browser new-tab ~/.agent/diagrams/<topic-slug>-eli25.html
+     ```
+
+     That reuses this terminal tab's browser when one is open and otherwise opens one in a split to the right. Without `terminal-browser`, open the file in the OS browser.
+3. Publish per `--deploy`, then open the resulting URL the same way, terminal-browser first:
+   - **none:** nothing further; the page is already showing.
    - **tailscale:** serve the diagrams directory on the tailnet and report the page URL. Only devices on the tailnet can reach it.
 
      ```bash
@@ -53,6 +60,6 @@ Three states: system (default), light, dark. The page follows the OS until the r
      If `/eli25` is already served, the file is live as soon as it is written; do not re-run serve.
    - **vercel:** deploy under the personal Vercel scope. Copy the page to a temp directory as `index.html` and run `vercel deploy --yes` there; report the URL it prints. Anyone with the URL can view it.
    - **vercel-work:** same, with `--scope "$VERCEL_WORK_SCOPE"`. If that variable is unset, run `vercel teams ls`, ask which team once, and tell the user to export it for next time. The team's deployment protection may require a Vercel login to view; say so with the URL.
-3. Report the local path, the URL if deployed, and the four panel titles.
+4. Report the local path, the URL if deployed, where it was opened, and the four panel titles.
 
 **Complete when:** the page passes the render check and the user has a path or URL they can open now.
