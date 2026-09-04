@@ -7,7 +7,7 @@ description: Implement one GitHub issue, Linear ticket, conversation plan, or co
 
 Turn one work item into committed, tested slices. Build implements; it does not review or publish. Review belongs to `/code-review`, verification to `/verify`, publishing to `/apr`. Keeping those out of the loop is what makes build's output a clean diff from one pinned base.
 
-Invoke as `/build <issue number|URL|ticket>`, `/build plan` for the plan just made in conversation, or hand build a contract block (below). A contract skips step 1.
+Invoke as `/build <issue number|URL|ticket>`, `/build plan` for the plan just made in conversation, or hand build a contract block (below). A contract skips step 1 entirely, including its confirmation: the caller has already settled scope, and build asks nothing. It reports blockers instead of asking questions.
 
 ## 1. Pin the contract
 
@@ -16,7 +16,7 @@ Standalone only. Produce the same contract block `/issue-to-pr` uses, so both pa
 1. Read the full work item: title, body, comments, acceptance criteria, linked PRD, plan, ADR, or parent. For GitHub use `gh issue view`; for Linear use the Linear app when available. For `/build plan`, the conversation plan is the work item; if there is none, ask for it.
 2. Read enough code to name the public seam the tests will exercise and the paths that will change. When the shape of that seam is itself in question, `/codebase-design` supplies the vocabulary.
 3. `git fetch` and pin the base: the remote-tracking ref of the default branch and its SHA. If already on a feature branch with commits, the merge-base with the default branch is the base instead.
-4. Write the contract and show it once for confirmation:
+4. Write the contract and show it once for confirmation (standalone only; a caller-supplied contract is never re-confirmed):
 
 ```md
 contract:
